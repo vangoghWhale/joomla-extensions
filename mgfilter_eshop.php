@@ -28,17 +28,27 @@ class mgfilterEshop{
         $nullDate = $db->getNullDate();
 
         $insertQuery = '';
+        $insertQuery .= "INSERT INTO `#__eshop_products` ($quoteColumns)";
+        $v1 = '';
         foreach($products as $k => $row){
-            $insertQuery .= "INSERT INTO `#__eshop_products` ($quoteColumns)";
-            $values = " VALUES (";
+            $value1 = '( ';
             foreach($row as $column => $value){
-                $values .= $db->quote($value) . ',';
+                // $value1 .= $db->quote($value) . ',';
+                if (!empty($value)){
+                    // $value1 .= $value . ',';
+                    $value1 .= $db->quote($value) . ', ';
+                }else{
+                    $value1 .= 'NULL, ';
+                }
             }
-            $values .= ')';
-            $insertQuery .= $values;
-            $insertQuery .= ';';
-            fwrite($file, $insertQuery);
+            $value1 = substr($value1, 0, -1);
+            $value1 .= ' )';
+            $v1 .= $value1 . ', ';
         }
+        $v1 = substr($v1, 0, -2);
+        $insertQuery .= " VALUES " . $v1;
+        $insertQuery .= ';';
+        fwrite($file, $insertQuery);
         fclose($file);
     }
 
