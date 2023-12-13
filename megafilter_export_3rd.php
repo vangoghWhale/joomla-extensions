@@ -26,7 +26,7 @@ class plgSystemMegafilter_export_3rd extends CMSPlugin{
                 mgfilterEshop::exportToSql('#__eshop_products');
                 break;
             case 'jamgfilter_import_eshop':
-                mgfilterEshop::importEshopData();
+                mgfilterEshop::importEshopData('eshop');
                 break;
             default:
                 break;

@@ -15,6 +15,7 @@
 		<filename plugin="megafilter_export_3rd">megafilter_export_3rd.php</filename>
 		<filename>helper.php</filename>
 		<filename>mgfilter_eshop.php</filename>
+		<folder>assets</folder>
 	</files>
 	
 	<languages>

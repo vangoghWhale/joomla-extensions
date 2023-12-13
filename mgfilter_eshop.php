@@ -71,7 +71,35 @@ class mgfilterEshop{
         return implode(',', $quoteColumns);
     }
 
-    public static function importEshopData(){
+    /**
+     * execute mysql query in each sql file
+     * 
+     * @return void
+     */
+    public static function importEshopData($filePrefix=null){
+        if (empty($filePrefix)) return ;
+
+        // currently load 1 file to test
+        $rootPath = JPATH_ROOT . '/cache/';
+        $files = scandir($rootPath);
+        $files = array_diff($files, ['.', '..']);
+        $files1 = array_map(function ($file){
+            $filePrefix = 'eshop';
+            if (strpos($file, '.sql') !== false && strpos($file, $filePrefix) !== false){
+                return $file;
+            }
+        }, $files);
+
+        $db = Factory::getDbo();
+        foreach($files1 as $k => $file){
+            if (empty($file)) continue;
+            $strQuery = file_get_contents($rootPath . $file);
+            $db->setQuery($strQuery);
+            if ($db->execute()){
+                die('success');
+            }
+        }
+
         return 1;
     }
 }
