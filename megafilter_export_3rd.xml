@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="1.0" type="plugin" group="system" method="upgrade">
+	<name>JA Megafilter - Export third party database</name>
+	<author>Vangogh</author>
+	<creationDate>12 - 12 - 2023</creationDate>
+	<copyright>Copyright (C), J.O.O.M Solutions Co., Ltd. All Rights Reserved.</copyright>
+	<license>license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html</license>
+	<authorEmail>webmaster@joomlart.com</authorEmail>
+	<authorUrl>www.joomla.org</authorUrl>
+	<version>1.0.0</version>
+	<description>This plugin is used to export sample data from third party: Eshop, Hikashop</description>
+	<updateservers>
+	</updateservers>
+	<files>
+		<filename plugin="megafilter_export_3rd">megafilter_export_3rd.php</filename>
+		<filename>helper.php</filename>
+		<filename>mgfilter_eshop.php</filename>
+	</files>
+	
+	<languages>
+		<!-- <language tag="en-GB">en-GB.plg_jamegafilter_content.ini</language>
+		<language tag="en-GB">en-GB.plg_jamegafilter_content.sys.ini</language> -->
+	</languages>
+
+	<config>
+		<!-- <fields name="params">
+			<fieldset name="basic">
+				<field name="rating-option"
+					   type="list" default="com_content"
+					   label="COM_JAMEGAFILTER_RATING_OPTION" description="COM_JAMEGAFILTER_RATING_OPTION_DESC">
+					<option value="com_content">RATING_OPTION_COM_CONTENT</option>
+					<option value="com_komento">RATING_OPTION_COM_KOMENTO</option>
+				</field>
+			</fieldset>
+		</fields> -->
+	</config>
+
+	<params>
+	</params>
+	<config>
+		<fields name="params">
+            <fieldset name="basic" addfieldpath="/plugins/system/megafilter_export_3rd/assets/elements">
+                <field name="custom_field" type="jamgfilter" default="" label="Export action"/>
+            </fieldset>
+        </fields>
+	</config>
+
+</extension>
