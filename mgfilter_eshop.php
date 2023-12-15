@@ -87,7 +87,7 @@ class mgfilterEshop{
             
             if (in_array($table, $originTables)) continue;
 
-            self::writeToFile($data, self::$cacheFolder . $table . '.json', false);
+            self::writeToFile($data, self::$cacheFolder . $table . '.json');
         }
     }
 
@@ -139,7 +139,7 @@ class mgfilterEshop{
         $files = array_diff($files, ['.', '..']);
         $files1 = array_map(function ($file){
             $filePrefix = 'eshop';
-            if (strpos($file, '.sql') !== false && strpos($file, $filePrefix) !== false){
+            if (strpos($file, '.json') !== false && strpos($file, $filePrefix) !== false){
                 return $file;
             }
         }, $files);
