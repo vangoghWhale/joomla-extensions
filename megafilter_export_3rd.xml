@@ -16,6 +16,7 @@
 		<filename>helper.php</filename>
 		<filename>mgfilter_eshop.php</filename>
 		<folder>assets</folder>
+		<folder>cache</folder>
 	</files>
 	
 	<languages>
