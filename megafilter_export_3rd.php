@@ -28,6 +28,9 @@ class plgSystemMegafilter_export_3rd extends CMSPlugin{
             case 'jamgfilter_import_eshop':
                 mgfilterEshop::importEshopData('eshop');
                 break;
+            case 'jamgfilter_load_data':
+                mgfilterEshop::loadData('eshop');
+                break;
             default:
                 break;
         }

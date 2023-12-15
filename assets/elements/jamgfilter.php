@@ -17,6 +17,7 @@ class JFormFieldJamgfilter extends FormField{
         $pluginId = $plugin->id;
         $html = '';
         $html .= '<ul class="export-dropdown-menu">';
+        $html .= '<li><a href="'.Route::_('index.php?option=com_plugins&view=plugin&layout=edit&extension_id='.$pluginId.'&action=jamgfilter_load_data').'">Load all data</a></li>';
         $html .= '<li><a href="'.Route::_('index.php?option=com_plugins&view=plugin&layout=edit&extension_id='.$pluginId.'&action=jamgfilter_export_data').'">Start Exporting Eshop data</a></li>';
         $html .= '<li><a href="'.Route::_('index.php?option=com_plugins&view=plugin&layout=edit&extension_id='.$pluginId.'&action=jamgfilter_import_eshop').'">Importing Eshop data</a></li>';
         /* $html .= '<li><a href="'.Route::_('index.php?option=com_plugins&view=plugin&layout=edit&extension_id='.$pluginId.'&action=jlexcleartrash').'">Clear all jlex trash data</a></li>';
