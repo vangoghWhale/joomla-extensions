@@ -83,7 +83,7 @@ class mgfilterEshop{
             
             if (empty($data)) continue;
             
-            $table = str_replace(self::dbPrefix(), '', $table);
+            $table = str_replace(self::getDbPrefix(), '', $table);
             
             if (in_array($table, $originTables)) continue;
 
@@ -135,7 +135,7 @@ class mgfilterEshop{
 
         // currently load 1 file to test
         $rootPath = JPATH_ROOT . '/cache/';
-        $files = scandir($rootPath);
+        $files = scandir(self::$cacheFolder);
         $files = array_diff($files, ['.', '..']);
         $files1 = array_map(function ($file){
             $filePrefix = 'eshop';
@@ -144,33 +144,130 @@ class mgfilterEshop{
             }
         }, $files);
 
+        // remove a file: eshop origin tables
+        $searchString = 'eshop_origin_tbls.json';
+        $idx = array_search($searchString, $files1);
+        if ($idx !== false) {
+            unset($files1[$idx]);
+        }
+        // end
+
+
         $db = Factory::getDbo();
         foreach($files1 as $k => $file){
             if (empty($file)) continue;
-            $strQuery = file_get_contents($rootPath . $file);
-            $db->setQuery($strQuery);
-            if ($db->execute()){
-                die('success');
+            if ($file === 'eshop_products.json'){
+                $tbl = self::getDbPrefix() . str_replace('.json', '', $file);
+                // $columns = self::getColumnNames($tbl);
+
+                $data_ = json_decode(file_get_contents(self::$cacheFolder . $file));
+                $data_ = self::prepareData($tbl, $data_);
+                $data = $data_['data'];
+                $columns = $data_['column_names'];
+                $query = '';
+                $query .= "INSERT INTO `$tbl` ($columns) VALUES $data";
+                // $query = $db->getQuery(true);
+                // $query->insert("`$tbl`")
+                //     ->columns(self::getColumnNames($tbl))
+                //     ->values($data);
+                $db->setQuery($query);
+                $db->execute();
             }
         }
 
         return 1;
     }
 
+    public static function prepareData($tbl, $data){
+        $table = $tbl;
+        $tblStructure = self::getTableStructure($table);
+        $allNotNullCols = self::getNotNullColumns($tblStructure);
+        $tblColumns = self::getColumnNames($table, true);
+        $oldColumns = array_keys((array) $data[0]);
+        $diffColumns = array_diff($tblColumns, $oldColumns);
+        // $diffColumns = array_merge($diffColumns, ['product_call_for_price', 'product_threshold_notify']);
+        $dataMiss = [];
+        foreach($tblStructure as $k => $val){
+            if (in_array($val[0], $diffColumns)){
+                $dataMiss[$val[0]] = $val[4];
+            }
+        }
+        /**
+         * 0: field name
+         * 1: type
+         * 2: Null value YES|NO
+         * 3: key PRI|MUL
+         * 4: default value
+         * 5: extra auto_increment
+         */
+        $db = Factory::getDbo();
+        $newData = [];
+        $strData = '';
+        switch ($tbl) {
+            case self::getDbPrefix() . 'eshop_products':
+                foreach($data as $k => $val){
+                    foreach($val as $col => $v){
+                        if (in_array($col, $tblColumns)){
+                            if (empty($v)){
+                                if (isset($allNotNullCols[$col])){
+                                    $newData[$k][$col] = $allNotNullCols[$col];
+                                }else{
+                                    $newData[$k][$col] = 'NULL';
+                                }
+                            }else{
+                                if ($col === 'id'){
+                                    $newData[$k][$col] = 'NULL';
+                                }else{
+                                    $newData[$k][$col] = $db->quote($v);
+                                }
+                            }
+                        }
+                    }
+                    $newData[$k] = array_merge($newData[$k], $dataMiss);
+                    $strData .= '('. implode(',', array_merge($newData[$k], $dataMiss)) . '),';
+                }
+                break;
+            default:
+                # code...
+                return [];
+        }
+        
+        $strData = substr($strData, 0, -1);
+        $quoteColumns = array_map(function ($col) use ($db){
+            return $db->quoteName($col);
+        }, array_keys($newData[0]));
+
+        return ['data' => $strData, 'column_names' => implode(',', $quoteColumns)];
+    }
+
+    public static function getNotNullColumns($data){
+        if (empty($data)) return ;
+        $db = Factory::getDbo();
+        $cols = [];
+        foreach($data as $val){
+            if (!isset($val[4])) continue;
+            $cols[$val[0]] = is_string($val[4]) ? $db->quote($val[4]) : $val[4];
+        }
+
+        return $cols;
+    }
+
     /**
      * get all column names of a table
      * 
-     * @param string $tblName
+     * @param string $tblName prefix_tblName
      * 
      * @return string a string of all tables
      */
-    public static function getColumnNames($tblName){
+    public static function getColumnNames($tblName, $raw=false){
         $db = Factory::getDbo();
         $query = "SHOW COLUMNS FROM `$tblName`";
         $db->setQuery($query);
         $es_product_columns_name = $db->loadColumn();
         
         if (empty($es_product_columns_name)) return '';
+
+        if ($raw) return $es_product_columns_name;
 
         $quoteColumns = array_map(function ($item){
             return '`' . $item .'`';
@@ -181,6 +278,13 @@ class mgfilterEshop{
 
     /**
      * get structure of a table
+     * return:
+     * 0: field name
+     * 1: type
+     * 2: Null value YES|NO
+     * 3: key PRI|MUL
+     * 4: default value
+     * 5: extra auto_increment
      * 
      * @param string $tblName a table name
      * 
@@ -198,7 +302,7 @@ class mgfilterEshop{
      * 
      * @return string
      */
-    public static function dbPrefix(){
+    public static function getDbPrefix(){
         $db = Factory::getDbo();
         return $db->getPrefix();
     }
