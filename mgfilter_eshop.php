@@ -156,22 +156,21 @@ class mgfilterEshop{
         $db = Factory::getDbo();
         foreach($files1 as $k => $file){
             if (empty($file)) continue;
-            if ($file === 'eshop_products.json'){
-                $tbl = self::getDbPrefix() . str_replace('.json', '', $file);
-                // $columns = self::getColumnNames($tbl);
+            $tbl = self::getDbPrefix() . str_replace('.json', '', $file);
+            // $columns = self::getColumnNames($tbl);
 
-                $data_ = json_decode(file_get_contents(self::$cacheFolder . $file));
-                $data_ = self::prepareData($tbl, $data_);
-                $data = $data_['data'];
-                $columns = $data_['column_names'];
-                $query = '';
-                $query .= "INSERT INTO `$tbl` ($columns) VALUES $data";
-                // $query = $db->getQuery(true);
-                // $query->insert("`$tbl`")
-                //     ->columns(self::getColumnNames($tbl))
-                //     ->values($data);
+            $data_ = json_decode(file_get_contents(self::$cacheFolder . $file));
+            $data_ = self::prepareData($tbl, $data_);
+            $data = $data_['data'];
+            $columns = $data_['column_names'];
+            $query = "INSERT INTO `$tbl` ($columns) VALUES $data";
+            // echo '<pre>';print_r($query);echo '</pre>';
+            try{
                 $db->setQuery($query);
                 $db->execute();
+            }catch (RuntimeException $e){
+                echo '<pre>';print_r([$file, $query]);echo '</pre>';
+                echo '<pre>'. print_r($e, true) .'</pre>';die();
             }
         }
 
@@ -187,9 +186,10 @@ class mgfilterEshop{
         $diffColumns = array_diff($tblColumns, $oldColumns);
         // $diffColumns = array_merge($diffColumns, ['product_call_for_price', 'product_threshold_notify']);
         $dataMiss = [];
+        $db = Factory::getDbo();
         foreach($tblStructure as $k => $val){
             if (in_array($val[0], $diffColumns)){
-                $dataMiss[$val[0]] = $val[4];
+                $dataMiss[$val[0]] = $db->quote($val[4]);
             }
         }
         /**
@@ -203,33 +203,26 @@ class mgfilterEshop{
         $db = Factory::getDbo();
         $newData = [];
         $strData = '';
-        switch ($tbl) {
-            case self::getDbPrefix() . 'eshop_products':
-                foreach($data as $k => $val){
-                    foreach($val as $col => $v){
-                        if (in_array($col, $tblColumns)){
-                            if (empty($v)){
-                                if (isset($allNotNullCols[$col])){
-                                    $newData[$k][$col] = $allNotNullCols[$col];
-                                }else{
-                                    $newData[$k][$col] = 'NULL';
-                                }
-                            }else{
-                                if ($col === 'id'){
-                                    $newData[$k][$col] = 'NULL';
-                                }else{
-                                    $newData[$k][$col] = $db->quote($v);
-                                }
-                            }
+        foreach($data as $k => $val){
+            foreach($val as $col => $v){
+                if (in_array($col, $tblColumns)){
+                    if (empty($v)){
+                        if (isset($allNotNullCols[$col])){
+                            $newData[$k][$col] = $allNotNullCols[$col];
+                        }else{
+                            $newData[$k][$col] = 'NULL';
+                        }
+                    }else{
+                        if ($col === 'id'){
+                            $newData[$k][$col] = 'NULL';
+                        }else{
+                            $newData[$k][$col] = $db->quote($v);
                         }
                     }
-                    $newData[$k] = array_merge($newData[$k], $dataMiss);
-                    $strData .= '('. implode(',', array_merge($newData[$k], $dataMiss)) . '),';
                 }
-                break;
-            default:
-                # code...
-                return [];
+            }
+            $newData[$k] = array_merge($newData[$k], $dataMiss);
+            $strData .= '('. implode(',', array_merge($newData[$k], $dataMiss)) . '),';
         }
         
         $strData = substr($strData, 0, -1);
